@@ -17,6 +17,15 @@ async function main(): Promise<void> {
     debugOutput: externalAgent(),
   });
 
+  agent.registerTool(
+    "super_tool",
+    "Prints something nice.",
+    async () => {
+      console.log("[super_tool] You're awesome.");
+      return { ok: true };
+    },
+  );
+
   let showEvents = false;
   agent.on("event", (ev) => {
     if (!showEvents || ev.type === "message_enqueued") return;
@@ -24,11 +33,10 @@ async function main(): Promise<void> {
   });
 
   await agent.start();
-
   console.log(debugLogHint());
   console.log("waiting for agent…");
   await agent.waitUntilReady();
-  console.log(" ok\nready — send <msg> | quit\n");
+  console.log(" ok\nready — send <msg> | send super | quit\n");
 
   showEvents = true;
   await runRepl(agent);
