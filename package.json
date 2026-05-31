@@ -1,6 +1,6 @@
 {
   "name": "@dvrosalesm/agentio",
-  "version": "0.1.0",
+  "version": "0.1.01",
   "description": "Slim harness between your UI and any agent CLI — message queue, tools, and events via SQLite + agentio CLI",
   "type": "module",
   "sideEffects": false,
