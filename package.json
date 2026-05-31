@@ -24,9 +24,11 @@
     "build": "tsc",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build",
+    "pack:check": "npm pack --dry-run",
     "dev": "tsx src/cli.ts",
     "example": "npm run build && npm install --prefix examples/runner-control && npm run start --prefix examples/runner-control"
   },
+  "author": "Diego Rosales <rdiegovladimir@gmail.com>",
   "keywords": [
     "agent",
     "harness",

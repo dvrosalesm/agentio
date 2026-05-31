@@ -134,4 +134,3 @@ Harness REPL: `send`, `steer`, `clear`, `stop`, `quit`.
 ## License
 
 MIT — see [LICENSE](./LICENSE).
-# agentio
