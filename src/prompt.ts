@@ -17,8 +17,9 @@ Outbound (you → harness):
 Inbound (harness → you):
 - agentio recv   (blocks until the user sends a message; steer or queue)
   Steer messages are delivered before queued ones. Call recv when you need user input.
+  recv will not deliver until you have sent at least one agentio status for this process.
 
-Env: AGENTIO_TASK_ID, AGENTIO_STORE (and AGENTIO_BIN when set). Tools run via the DB queue (agentio run). Do not invent APIs.`;
+Env: AGENTIO_TASK_ID, AGENTIO_STORE, AGENTIO_BOOT_CURSOR (and AGENTIO_BIN when set). Tools run via the DB queue (agentio run). Do not invent APIs.`;
 
 export function buildSystemPrompt(registeredTools: RegisteredTool[] = []): string {
   if (registeredTools.length === 0) return AGENTIO_SYSTEM_PROMPT;

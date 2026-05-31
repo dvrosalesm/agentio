@@ -1,22 +1,19 @@
-# Runner control
+# runner-control
 
-Uses `createAgent` from `@dvrosalesm/agentio`. Default agent is `demo-agent.ts` (loops on `agentio recv`).
-
-```bash
-npm run example
-```
-
-Optional (`codex login` first). Spawns `codex exec` with the agentio system prompt — Codex must run `agentio recv` / `status` itself (see `.agentio/system-prompt.txt`):
+Interactive REPL harness — queue messages to an agent and watch events.
 
 ```bash
-npm run example -- codex
+npm run start              # mock agent (@dvrosalesm/agentio/mock)
+npm run start -- codex     # CODEX_COMMAND
+npm run start -- claude    # CLAUDE_COMMAND
+npm run start -- cursor    # CURSOR_COMMAND (needs @cursor/sdk + CURSOR_API_KEY)
+npm run start -- pi        # PI_COMMAND
 ```
 
-Register tools with `agent.registerTool()` before `run()` — they are listed in `.agentio/system-prompt.txt` for the agent (e.g. `search_files`, `super_tool`).
+REPL commands: `send <message>` · `quit`
 
-While the agent runs:
+From repo root: `npm run example`
 
-- `send hello` — queue a message (agent gets it on next `agentio recv`)
-- `steer stop now` — steer (delivered before queue)
-- `clear` — `clearQueue()`
-- `stop` / `quit` — kill agent + teardown
+Each run starts a **fresh task**. External agents log to `.temp/agent-<taskId>.log`.
+
+See also: [`examples/say-hi`](../say-hi) for a minimal one-message script.

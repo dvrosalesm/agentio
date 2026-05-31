@@ -262,6 +262,22 @@ export function enqueueMessage(
   };
 }
 
+/** True once this process has emitted at least one status event (after boot cursor). */
+export function hasBootstrappedAgent(
+  db: Database.Database,
+  taskId: string,
+  sinceEventId: number,
+): boolean {
+  const row = db
+    .prepare(
+      `SELECT 1 FROM events
+       WHERE task_id = ? AND type = 'status' AND id > ?
+       LIMIT 1`,
+    )
+    .get(taskId, sinceEventId);
+  return row != null;
+}
+
 /** Steer first, then queue FIFO. Marks delivered and emits message_delivered. */
 export function claimNextMessage(
   db: Database.Database,

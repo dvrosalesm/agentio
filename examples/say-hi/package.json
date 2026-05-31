@@ -1,5 +1,5 @@
 {
-  "name": "agentio-example-runner-control",
+  "name": "agentio-example-say-hi",
   "private": true,
   "type": "module",
   "scripts": {

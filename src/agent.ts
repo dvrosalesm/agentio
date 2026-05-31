@@ -7,6 +7,7 @@ import {
   appendEvent,
   claimNextToolCall,
   clearMessageQueue,
+  closeStore,
   completeToolCall,
   enqueueMessage,
   getTask,
@@ -51,6 +52,11 @@ export class Agent extends EventEmitter {
   private debugLogStream: WriteStream | null = null;
   private watchGen = 0;
   private watchRunning = false;
+  private watchDone: Promise<void> | null = null;
+  private bootCursor = 0;
+  private ready = false;
+  private readyResolve: (() => void) | null = null;
+  private readyPromise: Promise<void> | null = null;
   private readonly pendingTools = new Map<
     string,
     { description: string; handler: ToolHandler }
@@ -61,6 +67,28 @@ export class Agent extends EventEmitter {
     this.options = options;
     this.storePath = resolveAgentStorePath(options.cwd, options.storePath);
     this.db = openStore(this.storePath);
+  }
+
+  /** Whether this agent process has emitted a status event since spawn/resume. */
+  get isReady(): boolean {
+    return this.ready;
+  }
+
+  /** Resolves after the agent emits its first status (bootstrap complete). */
+  waitUntilReady(timeoutMs = 120_000): Promise<void> {
+    if (this.ready) return Promise.resolve();
+    if (!this.readyPromise) {
+      throw new Error("Call start() or resume() before waitUntilReady()");
+    }
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<void>((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error("Timed out waiting for agent ready (no status event)"));
+      }, timeoutMs);
+    });
+    return Promise.race([this.readyPromise, timeout]).finally(() => {
+      if (timer) clearTimeout(timer);
+    });
   }
 
   /** Harness → agent. Default mode is queue. */
@@ -177,11 +205,14 @@ export class Agent extends EventEmitter {
     }
 
     const agentioBin = resolveAgentioBin(this.options.pathPrefix);
+    this.bootCursor = watchSince;
+    this.resetReady();
     const env: NodeJS.ProcessEnv = {
       ...process.env,
       AGENTIO_TASK_ID: taskId,
       AGENTIO_STORE: this.storePath,
       AGENTIO_BIN: agentioBin,
+      AGENTIO_BOOT_CURSOR: String(watchSince),
     };
     if (this.options.pathPrefix) {
       env.PATH = `${this.options.pathPrefix}:${process.env.PATH ?? ""}`;
@@ -195,6 +226,9 @@ export class Agent extends EventEmitter {
       env,
       stdio: captureOutput ? ["ignore", "pipe", "pipe"] : "ignore",
     });
+    if (!captureOutput) {
+      this.child.unref();
+    }
 
     if (captureOutput && this.debugLogStream) {
       const log = this.debugLogStream;
@@ -264,6 +298,11 @@ export class Agent extends EventEmitter {
       this.debugLogStream.end();
       this.debugLogStream = null;
     }
+
+    await this.watchDone?.catch(() => {});
+    this.watchDone = null;
+    this.removeAllListeners();
+    closeStore();
   }
 
   get task(): string | null {
@@ -276,7 +315,23 @@ export class Agent extends EventEmitter {
       storePath: this.storePath,
       pathPrefix: this.options.pathPrefix,
       agentioBin: resolveAgentioBin(this.options.pathPrefix),
+      bootCursor: this.bootCursor,
     });
+  }
+
+  private resetReady(): void {
+    this.ready = false;
+    this.readyPromise = new Promise((resolve) => {
+      this.readyResolve = resolve;
+    });
+  }
+
+  private markReady(): void {
+    if (this.ready) return;
+    this.ready = true;
+    this.readyResolve?.();
+    this.readyResolve = null;
+    this.emit("ready");
   }
 
   private requireTask(): string {
@@ -330,17 +385,24 @@ export class Agent extends EventEmitter {
     const gen = ++this.watchGen;
     this.watchRunning = true;
 
-    void (async () => {
+    this.watchDone = (async () => {
       let cursor = since;
-      while (this.watchRunning && gen === this.watchGen) {
-        await this.processToolCalls(taskId);
+      try {
+        while (this.watchRunning && gen === this.watchGen) {
+          await this.processToolCalls(taskId);
 
-        const batch = listEvents(this.db, taskId, cursor);
-        for (const event of batch) {
-          cursor = event.id;
-          this.emit("event", event);
+          const batch = listEvents(this.db, taskId, cursor);
+          for (const event of batch) {
+            cursor = event.id;
+            if (event.type === "status" && event.id > this.bootCursor) {
+              this.markReady();
+            }
+            this.emit("event", event);
+          }
+          await sleep(200);
         }
-        await sleep(200);
+      } catch {
+        // Store closed or task torn down during stop().
       }
     })();
   }

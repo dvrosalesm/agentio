@@ -3,15 +3,21 @@
   "version": "0.1.0",
   "description": "Slim harness between your UI and any agent CLI — message queue, tools, and events via SQLite + agentio CLI",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "agentio": "./dist/cli.js"
+    "agentio": "./dist/cli.js",
+    "agentio-mock": "./dist/mock-cli.js"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./mock": {
+      "types": "./dist/mock.d.ts",
+      "import": "./dist/mock.js"
     }
   },
   "files": [
@@ -26,7 +32,8 @@
     "prepublishOnly": "npm run build",
     "pack:check": "npm pack --dry-run",
     "dev": "tsx src/cli.ts",
-    "example": "npm run build && npm install --prefix examples/runner-control && npm run start --prefix examples/runner-control"
+    "example": "npm run build && npm install --prefix examples/runner-control && npm run start --prefix examples/runner-control",
+    "example:say-hi": "npm run build && npm install --prefix examples/say-hi && npm run start --prefix examples/say-hi"
   },
   "author": "Diego Rosales <rdiegovladimir@gmail.com>",
   "keywords": [
@@ -53,6 +60,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "peerDependencies": {
+    "@cursor/sdk": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@cursor/sdk": {
+      "optional": true
+    }
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0"

@@ -16,12 +16,14 @@ Requires **Node.js 20+**. Native dependency: [better-sqlite3](https://github.com
 
 ```ts
 import { createAgent, formatTaskEvent } from "@dvrosalesm/agentio";
+import { MOCK_COMMAND } from "@dvrosalesm/agentio/mock";
+// import { CODEX_COMMAND } from "@dvrosalesm/agentio";
 
 const agent = createAgent({
   harness: "my-ui",
   cwd: process.cwd(),
-  command: ["tsx", "my-agent.ts"], // or ["codex", "exec", "..."]
-  pathPrefix: "node_modules/.bin", // so the child finds `agentio`
+  command: [...MOCK_COMMAND], // or ["tsx", "my-agent.ts"], or CODEX_COMMAND
+  pathPrefix: "node_modules/.bin",
 });
 
 agent.registerTool(
@@ -103,30 +105,61 @@ After `start()` or `resume()` in `cwd`:
   agent-<taskId>.log
 ```
 
-## Example
+## Mock agent (testing)
+
+For harness tests and examples, use the optional mock subpath — it is **not** included in the main export (tree-shakeable):
+
+```ts
+import { MOCK_COMMAND, runMockAgent } from "@dvrosalesm/agentio/mock";
+```
+
+| Export | Purpose |
+|--------|---------|
+| `MOCK_COMMAND` | Spawn argv — echo loop via `agentio-mock` CLI |
+| `runMockAgent(options?)` | Run the mock in-process (uses `AGENTIO_BIN`) |
+
+CLI flags (`agentio-mock`): `--once`, `--reply <text>` (see `examples/say-hi`).
+
+```ts
+// one-shot reply
+command: [...MOCK_COMMAND, "--once", "--reply", "Hi!"]
+
+// custom handler in-process
+await runMockAgent({
+  onMessage(body) {
+    if (/^quit$/i.test(body.trim())) return null;
+    return body;
+  },
+});
+```
+
+## Examples
 
 From the repo:
 
 ```bash
-git clone <your-repo-url>
-cd agentio
 npm install
 npm run build
-npm run example              # demo-agent (recommended first run)
-npm run example -- codex     # requires `codex login`
+npm run example:say-hi         # spawn → send → wait for reply → exit (mock)
+npm run example                # interactive REPL (mock)
+npm run example -- codex       # REPL with Codex (requires `codex login`)
 ```
 
-Harness REPL: `send`, `steer`, `clear`, `stop`, `quit`.
+- [`examples/say-hi`](./examples/say-hi) — minimal one-message flow
+- [`examples/runner-control`](./examples/runner-control) — REPL harness (`send hello` · `quit`)
 
 ## Codex / sandbox notes
 
 - Use **`codex exec`** (or a script), not the interactive TUI — the harness keeps stdin.
+- Codex defaults to **read-only** sandbox; agentio must write to `.agentio/store.db`. Use `CODEX_COMMAND` (includes `--sandbox workspace-write`) or pass the flag yourself.
 - Store and tools must live under **`cwd`** (default: `<cwd>/.agentio/store.db`).
 - Set `pathPrefix` so `agentio` is on the child’s `PATH`, or set `AGENTIO_BIN` to an absolute path.
 
 ## API exports
 
 - **Primary:** `createAgent`, `Agent`, `formatTaskEvent`
+- **Agent spawn:** `CODEX_COMMAND`, `CLAUDE_COMMAND`, `CURSOR_COMMAND`, `PI_COMMAND`, `HARNESS_BOOTSTRAP`
+- **Mock (optional):** `@dvrosalesm/agentio/mock` — `MOCK_COMMAND`, `runMockAgent` (bin: `agentio-mock`)
 - **Prompt helpers:** `AGENTIO_SYSTEM_PROMPT`, `buildSystemPrompt`, `writeHarnessFiles`
 - **Store:** `openStore`, `resolveAgentStorePath`, `storePathForWorkspace`
 - **Legacy (deprecated):** `startHost`, `registerAction`, unix-socket `invokeRunOverSocket`

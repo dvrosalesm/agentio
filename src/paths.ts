@@ -38,6 +38,14 @@ export function resolveTaskId(): string {
   return id;
 }
 
+/** Event id floor for this agent process; recv waits for a newer status before delivering. */
+export function resolveBootCursor(): number {
+  const raw = process.env.AGENTIO_BOOT_CURSOR?.trim();
+  if (!raw) return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
 export function resolveAgentioBin(pathPrefix?: string): string {
   if (pathPrefix?.trim()) {
     for (const dir of pathPrefix.split(":")) {
@@ -52,6 +60,7 @@ export interface EnvExportsOptions {
   storePath?: string;
   pathPrefix?: string;
   agentioBin?: string;
+  bootCursor?: number;
 }
 
 export function envExports(
@@ -61,10 +70,12 @@ export function envExports(
   const store = resolveStorePath(options.storePath);
   const agentioBin =
     options.agentioBin ?? resolveAgentioBin(options.pathPrefix);
+  const bootCursor = options.bootCursor ?? 0;
   const lines = [
     `export AGENTIO_TASK_ID=${taskId}`,
     `export AGENTIO_STORE=${store}`,
     `export AGENTIO_BIN=${agentioBin}`,
+    `export AGENTIO_BOOT_CURSOR=${bootCursor}`,
   ];
 
   if (options.pathPrefix?.trim()) {

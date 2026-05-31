@@ -1,6 +1,13 @@
 export { Agent, createAgent } from "./agent.js";
 export { formatTaskEvent } from "./format.js";
 export {
+  CLAUDE_COMMAND,
+  CODEX_COMMAND,
+  CURSOR_COMMAND,
+  HARNESS_BOOTSTRAP,
+  PI_COMMAND,
+} from "./commands.js";
+export {
   AGENTIO_SYSTEM_PROMPT,
   buildSystemPrompt,
   writeHarnessFiles,

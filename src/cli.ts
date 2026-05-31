@@ -4,11 +4,12 @@ import {
   claimNextMessage,
   enqueueToolCall,
   getTask,
+  hasBootstrappedAgent,
   openStore,
   setTaskStatus,
   waitForToolCall,
 } from "./db.js";
-import { resolveStorePath, resolveTaskId } from "./paths.js";
+import { resolveBootCursor, resolveStorePath, resolveTaskId } from "./paths.js";
 
 function usage(): never {
   console.error(`Usage:
@@ -68,7 +69,13 @@ async function waitForMessage(
   taskId: string,
   timeoutMs: number | null,
 ): Promise<void> {
+  const bootCursor = resolveBootCursor();
+
   if (timeoutMs === 0) {
+    if (!hasBootstrappedAgent(db, taskId, bootCursor)) {
+      console.log("null");
+      return;
+    }
     const msg = claimNextMessage(db, taskId);
     if (!msg) {
       console.log("null");
@@ -82,10 +89,12 @@ async function waitForMessage(
     timeoutMs == null ? null : Date.now() + (Number.isNaN(timeoutMs) ? 0 : timeoutMs);
 
   while (true) {
-    const msg = claimNextMessage(db, taskId);
-    if (msg) {
-      console.log(JSON.stringify({ id: msg.id, mode: msg.mode, body: msg.body }));
-      return;
+    if (hasBootstrappedAgent(db, taskId, bootCursor)) {
+      const msg = claimNextMessage(db, taskId);
+      if (msg) {
+        console.log(JSON.stringify({ id: msg.id, mode: msg.mode, body: msg.body }));
+        return;
+      }
     }
     if (deadline != null && Date.now() >= deadline) {
       console.log("null");
