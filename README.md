@@ -7,7 +7,7 @@ Your harness owns the process, tools, and user message queue. The agent talks ba
 ## Install
 
 ```bash
-npm install @agentio/core
+npm install @dvrosalesm/agentio
 ```
 
 Requires **Node.js 20+**. Native dependency: [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) (prebuilt binaries on common platforms).
@@ -15,7 +15,7 @@ Requires **Node.js 20+**. Native dependency: [better-sqlite3](https://github.com
 ## Quick start (harness)
 
 ```ts
-import { createAgent, formatTaskEvent } from "@agentio/core";
+import { createAgent, formatTaskEvent } from "@dvrosalesm/agentio";
 
 const agent = createAgent({
   harness: "my-ui",

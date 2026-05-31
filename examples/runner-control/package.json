@@ -6,7 +6,7 @@
     "start": "tsx main.ts"
   },
   "dependencies": {
-    "@agentio/core": "file:../.."
+    "@dvrosalesm/agentio": "file:../.."
   },
   "devDependencies": {
     "tsx": "^4.19.4",

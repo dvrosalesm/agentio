@@ -1,5 +1,5 @@
 {
-  "name": "@agentio/core",
+  "name": "@dvrosalesm/agentio",
   "version": "0.1.0",
   "description": "Slim harness between your UI and any agent CLI — message queue, tools, and events via SQLite + agentio CLI",
   "type": "module",
@@ -42,12 +42,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agentio-hq/agentio.git"
+    "url": "git+https://github.com/dvrosalesm/agentio.git"
   },
   "bugs": {
-    "url": "https://github.com/agentio-hq/agentio/issues"
+    "url": "https://github.com/dvrosalesm/agentio/issues"
   },
-  "homepage": "https://github.com/agentio-hq/agentio#readme",
+  "homepage": "https://github.com/dvrosalesm/agentio#readme",
   "publishConfig": {
     "access": "public"
   },

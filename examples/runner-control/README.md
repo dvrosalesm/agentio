@@ -1,6 +1,6 @@
 # Runner control
 
-Uses `createAgent` from `@agentio/core`. Default agent is `demo-agent.ts` (loops on `agentio recv`).
+Uses `createAgent` from `@dvrosalesm/agentio`. Default agent is `demo-agent.ts` (loops on `agentio recv`).
 
 ```bash
 npm run example

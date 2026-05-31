@@ -1,35 +1,35 @@
 # Release checklist
 
+Package name: **`@dvrosalesm/agentio`** (scoped to npm user/org `dvrosalesm`).
+
 ## One-time npm setup
 
-### 1. Create the scoped package on npm
+### 1. Scope
 
-- Sign in at [npmjs.com](https://www.npmjs.com/).
-- Create or join the **`@agentio`** organization (required for `@agentio/core`).
-- Ensure your account can publish to that scope.
+- The package publishes under **`@dvrosalesm`**. If your npm username is `dvrosalesm`, no separate org is required — your user scope is created on first publish.
+- If CI uses a different npm account, that account must be `dvrosalesm` or a member of the `@dvrosalesm` org with publish rights.
 
 ### 2. Choose authentication (pick one)
 
 **Option A — Trusted publishing (recommended)**
 
-1. Open **@agentio/core** on npm → **Settings** → **Trusted publishing**.
+1. After the first manual publish (or create the package on npm), open **@dvrosalesm/agentio** → **Settings** → **Trusted publishing**.
 2. Add a publisher:
    - Provider: GitHub Actions
-   - Repository: your GitHub repo (e.g. `dvrosalesm/agentio` or `agentio-hq/agentio`)
+   - Repository: `dvrosalesm/agentio` (or your fork)
    - Workflow file: `publish.yml`
-   - Environment: (leave empty unless you use GitHub Environments)
-3. You do **not** need `NPM_TOKEN` in GitHub when this is configured; provenance is signed via OIDC (`id-token: write` in the workflow).
+3. OIDC provenance uses `id-token: write` in the workflow; `NPM_TOKEN` is optional when trusted publishing is set up.
 
 **Option B — Automation token**
 
 1. npm → **Access Tokens** → **Generate New Token** → type **Automation** (for CI).
-2. In GitHub: **Settings → Secrets and variables → Actions** → add `NPM_TOKEN` with that value.
+2. GitHub → **Settings → Secrets and variables → Actions** → `NPM_TOKEN` (must belong to `dvrosalesm` or an org member who can publish).
 3. The [publish workflow](.github/workflows/publish.yml) uses this secret.
 
 ### 3. Align `package.json` metadata
 
 - `version` matches the git tag / GitHub release (e.g. tag `v0.1.0` → version `0.1.0`).
-- `repository`, `bugs`, and `homepage` URLs match your real GitHub remote.
+- `repository`, `bugs`, and `homepage` URLs match your GitHub remote.
 
 ## Before each release
 
@@ -51,23 +51,23 @@
 
 ### Automated (GitHub Release)
 
-1. On GitHub: **Releases → Draft a new release** → choose tag `v0.1.0` → **Publish release**.
-2. The **Publish to npm** workflow runs on `release: published` and runs `npm publish --provenance --access public`.
+1. GitHub: **Releases → Draft a new release** → tag `v0.1.0` → **Publish release**.
+2. **Publish to npm** runs `npm publish --provenance --access public`.
 
-You can also trigger it manually: **Actions → Publish to npm → Run workflow**.
+Manual trigger: **Actions → Publish to npm → Run workflow**.
 
 ### Manual (local)
 
 ```bash
-npm login
+npm login   # as dvrosalesm
 npm publish --access public
 ```
 
-Dry run without publishing:
+Dry run:
 
 ```bash
 npm run pack:check
-# or: npm pack && tar -tzf agentio-core-*.tgz
+# tarball: dvrosalesm-agentio-<version>.tgz
 ```
 
 ## What gets published
@@ -81,9 +81,16 @@ The `files` field in `package.json` limits the tarball to:
 
 ## Troubleshooting
 
+### `E404` on publish
+
+- **`npm whoami`** in CI must be `dvrosalesm` (or a user with publish access to `@dvrosalesm`).
+- **Trusted publishing** must be configured on `@dvrosalesm/agentio` for the same GitHub repo/workflow.
+- Re-run the workflow after fixing auth (no version bump if `0.1.0` never published).
+
+### Other errors
+
 | Error | Fix |
 |-------|-----|
-| `402 Payment Required` / scope access | Use `publishConfig.access: public` or `npm publish --access public`. |
-| `403 Forbidden` on `@agentio` | Join the org or publish under a scope you own (change `name` in `package.json`). |
-| Version already exists | Bump `version` in `package.json`; npm does not allow republishing the same version. |
-| `NPM_TOKEN` missing in CI | Add the secret or switch to trusted publishing (Option A). |
+| `402 Payment Required` | Use `publishConfig.access: public` or `npm publish --access public`. |
+| Version already exists | Bump `version` in `package.json`. |
+| `NPM_TOKEN` missing in CI | Add secret or use trusted publishing. |

@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createAgent, formatTaskEvent, type TaskEvent } from "@agentio/core";
+import { createAgent, formatTaskEvent, type TaskEvent } from "@dvrosalesm/agentio";
 
 const exampleDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(exampleDir, "../..");

@@ -23,4 +23,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Designed for headless agents (Codex `exec`, custom scripts). Interactive TUIs are not attached to the harness terminal.
 - Legacy global unix-socket host API remains under `host.ts` (deprecated).
 
-[0.1.0]: https://github.com/agentio-hq/agentio/releases/tag/v0.1.0
+[0.1.0]: https://github.com/dvrosalesm/agentio/releases/tag/v0.1.0

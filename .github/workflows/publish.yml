@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish @agentio/core
+    name: Publish @dvrosalesm/agentio
     runs-on: ubuntu-latest
     permissions:
       contents: read
